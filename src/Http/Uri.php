@@ -48,7 +48,7 @@ class Uri
         return $this->toString();
     }
 
-    public function toString()
+    public function toString(): string
     {
         if ($this->uriString !== null) {
             return $this->uriString;
@@ -124,7 +124,7 @@ class Uri
         return $this;
     }
 
-    public function getScheme()
+    public function getScheme(): string
     {
         return $this->scheme;
     }
@@ -137,7 +137,7 @@ class Uri
         return $this;
     }
 
-    public function getAuthority()
+    public function getAuthority(): string
     {
         if ($this->authority !== null) {
             return $this->authority;
@@ -150,18 +150,15 @@ class Uri
         return $this->authority;
     }
 
-    public function getAuthorityPort()
+    public function getAuthorityPort(): string
     {
         $showPort = !empty($this->port)
-                    && (
-                        empty($this->scheme)
-                        ||
-                        (isset($this->schemes[$this->scheme]) && $this->schemes[$this->scheme] !== $this->port)
-                    );
+            && (empty($this->scheme)
+                || isset($this->schemes[$this->scheme]) && $this->schemes[$this->scheme] !== $this->port);
         return $showPort ? $this->port : '';
     }
 
-    public function getUserInfo()
+    public function getUserInfo(): string
     {
         if ($this->userInfo !== null) {
             return $this->userInfo;
@@ -173,7 +170,7 @@ class Uri
         return $this->userInfo;
     }
 
-    public function getUsername()
+    public function getUsername(): string
     {
         return $this->username;
     }
@@ -187,7 +184,7 @@ class Uri
         return $this;
     }
 
-    public function getPassword()
+    public function getPassword(): string
     {
         return $this->password;
     }
@@ -201,7 +198,7 @@ class Uri
         return $this;
     }
 
-    public function getHost()
+    public function getHost(): string
     {
         return $this->host;
     }
@@ -214,7 +211,7 @@ class Uri
         return $this;
     }
 
-    public function getPort()
+    public function getPort(): string
     {
         return $this->port;
     }
@@ -238,7 +235,7 @@ class Uri
         return $this;
     }
 
-    public function getPath()
+    public function getPath(): string
     {
         return $this->path;
     }
@@ -250,7 +247,7 @@ class Uri
         return $this;
     }
 
-    public function getQuery()
+    public function getQuery(): string
     {
         return $this->query;
     }
@@ -263,7 +260,7 @@ class Uri
         return $this;
     }
 
-    public function getQueryParams()
+    public function getQueryParams(): array
     {
         return $this->queryParams;
     }
@@ -271,12 +268,12 @@ class Uri
     public function setQueryParams(array $queryParams): Uri
     {
         $this->uriString   = null;
-        $this->query       = $this->createQueryString($queryParams);
+        $this->query       = http_build_query($queryParams);
         $this->queryParams = $queryParams;
         return $this;
     }
 
-    public function getFragment()
+    public function getFragment(): string
     {
         return $this->fragment;
     }
@@ -321,22 +318,9 @@ class Uri
     private function parseQueryParams(string $query): array
     {
         $params = [];
-        $pairs  = explode('&', $query);
-        foreach ($pairs as $pair) {
-            $parts = explode('=', $pair, 2);
-            $key = $parts[0];
-            $value = $parts[1] ?? null;
-            $this->queryParams[$key] = $value;
-        }
+        $query  = preg_replace('/^(:?[^=]*\?)?/', '', $query);
+        parse_str($query, $params);
+        $this->queryParams = $params;
         return $params;
-    }
-
-    private function createQueryString(array $params): string
-    {
-        $pairs = [];
-        foreach ($params as $key => $value) {
-            $pairs[] = $key . ($value !== null ? '=' . $value : '');
-        }
-        return implode('&', $pairs);
     }
 }
